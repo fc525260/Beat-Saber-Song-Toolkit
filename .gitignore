@@ -20,10 +20,8 @@ test/Beat Saber  songs/
 LocalCache.saver
 LocalCache.time
 
-# GitHub Actions produces release artifacts; do not track local binaries.
-release/*.exe
-release/*.zip
-!release/README.md
+# GitHub Actions produces release artifacts; do not track local release output.
+release/
 
 # Internal handoff/audit notes are kept locally only.
 private_docs/
