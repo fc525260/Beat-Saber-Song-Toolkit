@@ -1,209 +1,181 @@
 # Beat Saber Song Toolkit
 
-Beat Saber Song Toolkit is a Flutter/Dart toolbox for Beat Saber song download,
-playlist sync, and local library management. It started as a BeatSpider rewrite
-and now combines the main workflows from:
+Beat Saber Song Toolkit 是一个面向 Beat Saber 自定义歌曲的 Flutter/Dart 工具箱，当前版本为 `0.1.0`。它提供歌曲搜索下载、歌单同步、本地曲库管理和本地缓存维护能力。
 
-- WGzeyu/BeatSpider
-- WGzeyu/Beat-Saber-Song-Folder-Manager
-- fc525260/Beat-Saber-Playlist-File-Sync
+本项目参考并整合了以下项目的主要使用场景：
 
-Current version: `0.1.0`.
+- [WGzeyu/BeatSpider](https://github.com/WGzeyu/BeatSpider)
+- [WGzeyu/Beat-Saber-Song-Folder-Manager](https://github.com/WGzeyu/Beat-Saber-Song-Folder-Manager)
+- [fc525260/Beat-Saber-Playlist-File-Sync](https://github.com/fc525260/Beat-Saber-Playlist-File-Sync)
 
-## Layout
+## 功能概览
 
-- Root package: `beat_saber_song_toolkit`
-- Flutter app: `apps\beat_saber_song_toolkit_app`
-- CLI entrypoint: `bin\beat_saber_song_toolkit.dart`
-- Final GUI/release checklist: `docs\FINAL_ACCEPTANCE_CHECKLIST_CN.md`
-- Smoke scripts: `tool\README.md`
-- Windows release output: `apps\beat_saber_song_toolkit_app\build\windows\x64\runner\Release\Beat Saber Song Toolkit.exe`
+- **找歌下载**：搜索 BeatSaver 歌曲，加入本次列表或跳过列表，下载 ZIP，安装歌曲，并可导出歌单。
+- **本地曲库**：扫描已安装歌曲，识别缺失 `info.dat`、重复歌曲、路径建议，支持导出 `.bplist`、读取收藏、管理 SongCore `folders.xml`。
+- **歌单同步**：将 `.bplist` 与本地曲库逐项对比，区分“本地有，歌单有”“本地无，歌单有”“本地有，歌单无”，并支持缺失歌曲的保守下载/安装流程。
+- **本地缓存**：读取、校验、构建和增量更新 `LocalCache.saver`，支持暂停/恢复快照构建，并以报告形式审计 BeatSaver deleted 数据。
+- **CLI 与 smoke 工具**：提供命令行入口和一组离线 smoke 脚本，便于回归验证核心逻辑。
 
-Real sample data, when present, is read-only:
+## 项目结构
 
 ```text
-test\Beat Saber  songs
+.
+├── apps/beat_saber_song_toolkit_app/   # Flutter GUI 应用
+├── bin/beat_saber_song_toolkit.dart    # CLI 入口
+├── lib/                                # Dart 核心库
+├── tool/                               # smoke / 维护脚本
+├── test/                               # 根包测试
+├── docs/                               # 公开文档与验收清单
+└── .github/workflows/                  # GitHub Actions 构建配置
 ```
 
-Scripts that need destructive checks copy data to system temp first.
-
-## Safety Model
-
-- Default development commands are offline: `dart analyze`, `dart test`, and
-  `tool\toolbox_smoke.dart` do not contact BeatSaver.
-- Live BeatSaver checks must be explicit through flags such as
-  `--allow-network` or `--api-sample=N`.
-- CLI download/install/search/import commands require `--allow-network`.
-- CLI deletion requires `--yes-delete`.
-- Real sample data under `test\Beat Saber  songs` is read-only; destructive
-  smoke scripts copy the needed files to system temp first.
-- Deleted-map handling for `LocalCache.saver` is report-only. The app exports
-  candidates for manual review and does not automatically remove cache entries.
-
-## GUI Workspaces
-
-The Flutter app has three main workspaces:
-
-- `找歌下载`: search BeatSaver and related sources, manage current/skip lists,
-  download ZIPs, install maps, use local ZIP/song cache, and export playlists.
-- `本地曲库`: scan installed songs, export `.bplist`, export favorites from
-  `PlayerData.dat`, inspect SongCore, save/read/remove `folders.xml` entries,
-  find duplicates, backup-delete duplicates, and apply path corrections.
-- `歌单同步`: compare a `.bplist` with an installed library, show one-to-one
-  installed/missing rows, export current rows, remove entries from playlists,
-  backup-delete selected installed entries, and download/install missing songs.
-
-The last selected workspace is saved in `%APPDATA%\BeatSaberSongToolkit`.
-
-## LocalCache.saver
-
-The old WGzeyu remote cache endpoints are currently unavailable, so the app no
-longer depends on them. The `本地缓存` data-source tab can:
-
-- read an existing `LocalCache.saver`;
-- build a fresh BeatSaver snapshot through official `/maps/latest`;
-- pause and resume full snapshot building;
-- incrementally update an existing snapshot with `/maps/latest?after=...`;
-- show snapshot age and last incremental update stats;
-- audit BeatSaver `/maps/deleted` candidates without modifying the cache;
-- export deleted-candidate reports as TSV after an audit.
-
-Important safety rule: deleted-map handling is intentionally report-only. The
-app does not automatically remove entries from `LocalCache.saver`.
-
-The project-local cache used for current development and routine offline checks is:
+Windows release 构建完成后的可执行文件位于：
 
 ```text
-LocalCache.saver
+apps/beat_saber_song_toolkit_app/build/windows/x64/runner/Release/Beat Saber Song Toolkit.exe
 ```
 
-The app settings on this machine point `localCacheSaverPath` to that file. Use
-this project-local cache by default; timestamped backups are kept only for
-recovery if a cache update fails or produces bad data.
+本地构建产物、缓存文件、真实样本和私有交接资料不会进入仓库。
 
-Default tests and smoke commands must stay offline for `LocalCache.saver`.
-Refreshing the cache is still supported, but it is an explicit maintenance
-operation: use the GUI rebuild/resume/incremental buttons or
-`tool\local_cache_update.dart` only when a cache update is intended. The update
-tool creates a timestamped backup before modifying the selected cache.
+## 安装与使用
 
-## Toolchain
+### 下载发行版
 
-Preferred local commands on this machine:
+建议从 GitHub Releases 下载 Windows x64 压缩包，解压后运行：
+
+```text
+Beat Saber Song Toolkit.exe
+```
+
+当前仓库通过 GitHub Actions 构建 Windows 发行包。构建产物不会提交到源码仓库。
+
+### 从源码运行
+
+需要先安装 Flutter，并确保 `flutter` 与 `dart` 命令可在终端中使用。
 
 ```powershell
-D:\Software\flutter\bin\dart.bat analyze
-D:\Software\flutter\bin\dart.bat test
-D:\Software\flutter\bin\dart.bat run tool\toolbox_smoke.dart
+git clone https://github.com/fc525260/Beat-Saber-Song-Toolkit.git
+cd Beat-Saber-Song-Toolkit
+flutter pub get
 ```
 
-From the Flutter app directory:
+运行桌面应用：
 
 ```powershell
-D:\Software\flutter\bin\flutter.bat analyze
-D:\Software\flutter\bin\flutter.bat test test\widget_test.dart
-D:\Software\flutter\bin\flutter.bat build windows --release
+cd apps/beat_saber_song_toolkit_app
+flutter run -d windows
 ```
 
-During normal local development, prefer the offline analyze/test/smoke commands.
-Windows release builds and visible GUI checks are reserved for explicit release
-validation or the final unified GUI pass.
-
-The Windows release executable is:
-
-```text
-apps\beat_saber_song_toolkit_app\build\windows\x64\runner\Release\Beat Saber Song Toolkit.exe
-```
-
-Local release artifacts are not tracked in git. The `release\` directory only
-documents where GitHub-built artifacts are expected from:
-
-```text
-release\
-```
-
-GitHub can build a Windows x64 package through the manual workflow:
-
-```text
-.github\workflows\windows-release.yml
-```
-
-Focused smoke scripts:
+构建 Windows release：
 
 ```powershell
-D:\Software\flutter\bin\dart.bat run tool\local_cache_inspect.dart LocalCache.saver
-D:\Software\flutter\bin\dart.bat run tool\local_cache_validate.dart --cache=LocalCache.saver
-D:\Software\flutter\bin\dart.bat run tool\songcore_smoke.dart
-D:\Software\flutter\bin\dart.bat run tool\playlist_sync_smoke.dart
+cd apps/beat_saber_song_toolkit_app
+flutter build windows --release
 ```
 
-Networked cache maintenance and missing-song checks are opt-in:
-
-```powershell
-D:\Software\flutter\bin\dart.bat run tool\local_cache_update.dart --cache=LocalCache.saver --allow-network
-D:\Software\flutter\bin\dart.bat run tool\local_cache_snapshot_smoke.dart --allow-network
-D:\Software\flutter\bin\dart.bat run tool\local_cache_snapshot_smoke.dart --allow-network --incremental --page-size=5
-D:\Software\flutter\bin\dart.bat run tool\local_cache_snapshot_smoke.dart --allow-network --deleted-audit --page-size=2
-D:\Software\flutter\bin\dart.bat run tool\local_cache_validate.dart --cache=LocalCache.saver --api-sample=10
-D:\Software\flutter\bin\dart.bat run tool\playlist_sync_smoke.dart --allow-network --with-missing-download
-D:\Software\flutter\bin\dart.bat run tool\playlist_sync_smoke.dart --allow-network --with-missing-install
-```
-
-Do not run these opt-in commands during routine regression unless a live
-BeatSaver check or cache maintenance update is the intended task.
-
-Before final release sign-off, use `docs\FINAL_ACCEPTANCE_CHECKLIST_CN.md`.
-That checklist separates automated coverage from Windows release GUI checks and
-external inputs such as GCP Vision keys or a project release API.
-
-## CLI Examples
-
-Run from the repository root:
-
-Networked CLI operations refuse to run unless `--allow-network` is present.
-Deleting an installed song directory refuses to run unless `--yes-delete` is
-present. Local list/export operations stay offline by default.
-Use `--help` or `-h` to print usage without running an operation.
-
-```powershell
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --help
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --query "camellia" --allow-network
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --download-id 1520 --out downloads --allow-network
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --install-id 1520 --install-out songs --allow-network
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --batch-install camellia --limit 3 --install-out songs --allow-network
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --list-installed --install-out songs
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --delete-id 1520 --install-out songs --yes-delete
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --export-bplist playlists\songs.bplist --install-out songs
-D:\Software\flutter\bin\dart.bat run bin\beat_saber_song_toolkit.dart --import-bplist playlists\songs.bplist --install-out songs --allow-network
-```
-
-## Configuration
-
-On Windows, app settings and caches are stored under:
-
-```text
-%APPDATA%\BeatSaberSongToolkit
-```
-
-On first run, an old `%APPDATA%\BeatSpiderReborn\settings.json` may be imported
-for compatibility if the new settings file does not exist.
-
-## Current External Dependencies
-
-These are intentionally not hardcoded:
-
-- release update API URL;
-- GCP Vision API key for cover-label filtering;
-- original BeatSpider default playlist cover sample.
-
-`泽宇缓存(兼容)` remains available as a compatibility download mode, but should
-not be treated as the default reliable source in the current environment.
-
-## Network Mirrors
-
-For mainland China networks, set mirrors before dependency or build commands:
+中国大陆网络环境下，如果访问官方源较慢，可在运行依赖安装或构建命令前设置镜像：
 
 ```powershell
 $env:PUB_HOSTED_URL="https://mirrors.cloud.tencent.com/dart-pub"
 $env:FLUTTER_STORAGE_BASE_URL="https://mirrors.cloud.tencent.com/flutter"
 ```
+
+## CLI 示例
+
+从仓库根目录运行：
+
+```powershell
+dart run bin/beat_saber_song_toolkit.dart --help
+dart run bin/beat_saber_song_toolkit.dart --query "camellia" --allow-network
+dart run bin/beat_saber_song_toolkit.dart --download-id 1520 --out downloads --allow-network
+dart run bin/beat_saber_song_toolkit.dart --install-id 1520 --install-out songs --allow-network
+dart run bin/beat_saber_song_toolkit.dart --list-installed --install-out songs
+dart run bin/beat_saber_song_toolkit.dart --export-bplist playlists/songs.bplist --install-out songs
+```
+
+安全限制：
+
+- 搜索、下载、安装、导入等联网操作必须显式传入 `--allow-network`。
+- 删除本地歌曲目录必须显式传入 `--yes-delete`。
+- 常规分析、测试和 smoke 命令默认离线，不会访问 BeatSaver。
+
+## 本地缓存
+
+`LocalCache.saver` 是用于离线查询 BeatSaver 谱面信息的本地快照文件。项目支持：
+
+- 读取已有 `LocalCache.saver`；
+- 通过 BeatSaver `/maps/latest` 构建完整快照；
+- 暂停并恢复快照构建；
+- 基于现有快照进行增量更新；
+- 校验缓存结构；
+- 审计 `/maps/deleted` 候选项并导出报告。
+
+缓存更新是显式维护操作，不会在普通测试中自动联网。deleted 审计只生成报告，不会自动删除缓存条目。
+
+常用离线检查：
+
+```powershell
+dart run tool/local_cache_inspect.dart LocalCache.saver
+dart run tool/local_cache_validate.dart --cache=LocalCache.saver
+```
+
+需要联网更新时，明确传入 `--allow-network`：
+
+```powershell
+dart run tool/local_cache_update.dart --cache=LocalCache.saver --allow-network
+```
+
+## 开发与测试
+
+根包检查：
+
+```powershell
+dart analyze
+dart test
+dart run tool/toolbox_smoke.dart
+```
+
+Flutter 应用检查：
+
+```powershell
+cd apps/beat_saber_song_toolkit_app
+flutter analyze
+flutter test test/widget_test.dart
+```
+
+最终 release 人工验收可参考：
+
+```text
+docs/FINAL_ACCEPTANCE_CHECKLIST_CN.md
+```
+
+## 配置位置
+
+Windows 下，应用配置默认保存在：
+
+```text
+%APPDATA%/BeatSaberSongToolkit
+```
+
+如果旧版 `%APPDATA%/BeatSpiderReborn/settings.json` 存在，首次启动时可能会导入旧配置以兼容历史数据。
+
+## 外部依赖边界
+
+以下能力需要用户自行提供或等待外部服务可用：
+
+- 项目自己的 release update API URL；
+- GCP Vision API key；
+- 原版 BeatSpider default playlist cover sample；
+- 泽宇缓存兼容域名。
+
+`泽宇缓存(兼容)` 仅作为兼容入口保留，不应视为当前默认可靠数据源。
+
+## 致谢
+
+感谢 WGzeyu 的 BeatSpider 与 Beat Saber Song Folder Manager，以及 fc525260 的 Beat Saber Playlist File Sync。本项目在这些项目的使用场景基础上，用 Flutter/Dart 重新实现并扩展为统一工具箱。
+
+本项目开发过程由 GPT-5.5 全程辅助完成。
+
+## 免责声明
+
+本项目是非官方工具，与 Beat Games、Meta、Beat Saber 或 BeatSaver 没有关联。请遵守相关平台、游戏和谱面作者的使用规则。联网功能会访问第三方服务，请自行确认网络环境与使用风险。

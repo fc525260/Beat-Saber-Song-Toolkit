@@ -51,13 +51,13 @@ void main() {
             .readAsStringSync();
 
     expect(readme, contains('Beat Saber Song Toolkit'));
-    expect(readme, contains('Current version: `0.1.0`'));
-    expect(readme, contains('apps\\beat_saber_song_toolkit_app'));
-    expect(readme, contains('bin\\beat_saber_song_toolkit.dart'));
+    expect(readme, contains('当前版本为 `0.1.0`'));
+    expect(readme, contains('apps/beat_saber_song_toolkit_app'));
+    expect(readme, contains('bin/beat_saber_song_toolkit.dart'));
     expect(
       readme,
       contains(
-        r'apps\beat_saber_song_toolkit_app\build\windows\x64\runner\Release\Beat Saber Song Toolkit.exe',
+        'apps/beat_saber_song_toolkit_app/build/windows/x64/runner/Release/Beat Saber Song Toolkit.exe',
       ),
     );
     expect(checklist, contains('Beat Saber Song Toolkit v0.1.0'));
@@ -195,10 +195,9 @@ void main() {
     }
     expect(readme, contains('release update API URL'));
     expect(readme, contains('GCP Vision API key'));
-    expect(
-        readme, contains('original BeatSpider default playlist cover sample'));
+    expect(readme, contains('原版 BeatSpider default playlist cover sample'));
     expect(readme, contains('泽宇缓存(兼容)'));
-    expect(readme, contains('not be treated as the default reliable source'));
+    expect(readme, contains('不应视为当前默认可靠数据源'));
   });
 
   test('CLI help keeps renamed entrypoint and safety gates visible', () async {
