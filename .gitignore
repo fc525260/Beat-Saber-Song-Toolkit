@@ -1,0 +1,42 @@
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+build/
+coverage/
+
+# Local runtime data and generated samples.
+downloads/
+installed/
+installed_test*/
+exported_playlists/
+cli_install_regression_test/
+windows_ui_test/
+test/Beat Saber  songs/
+
+# Large/local cache snapshots should be supplied by users or release assets.
+LocalCache.saver
+LocalCache.time
+
+# GitHub Actions produces release artifacts; do not track local binaries.
+release/*.exe
+release/*.zip
+!release/README.md
+
+# Internal handoff/audit notes are kept locally only.
+private_docs/
+
+# Flutter/Android generated local state.
+**/windows/flutter/ephemeral/
+**/android/.gradle/
+**/android/local.properties
+
+# IDE/user state.
+.idea/
+*.iml
+
+# Keep lockfiles for reproducible GitHub builds.
+!pubspec.lock
+!apps/**/pubspec.lock
